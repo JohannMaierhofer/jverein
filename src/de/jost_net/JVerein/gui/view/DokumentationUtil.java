@@ -24,7 +24,7 @@ public class DokumentationUtil
 
   // private static final String ALLGEMEIN = "allgemein/";
 
-  private static final String FUNKTIONEN = PRE + "v/4.0/";
+  private static final String FUNKTIONEN = PRE + "v/4.1/";
 
   private static final String AUSWERTUNGEN = FUNKTIONEN + "auswertungen/";
 
@@ -87,6 +87,8 @@ public class DokumentationUtil
 
   public static final String ZUSATZBETRAEGEIMPORT = MITGLIEDER
       + "zusatzbetrage-importieren";
+
+  public static final String FORDERUNG = MITGLIEDER + "forderung";
 
   // Buchführung
   public static final String ANFANGSBESTAENDE = BUCHF + "anfangsbestand";
