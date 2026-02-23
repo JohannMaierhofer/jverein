@@ -190,6 +190,7 @@ public class Gutschrift extends SEPASupport
 
             // Beträge bestimmen
             // Überweisungsbetrag ist maximal der bereits eingezahlte Betrag
+            // bzw. Providerbetrag
             double ueberweisungsbetrag = Math.min(provider.getBetrag(),
                 provider.getIstSumme());
             // Offenbetrag ist der Fehlbetrag des aktuellen Providers
@@ -311,24 +312,25 @@ public class Gutschrift extends SEPASupport
     String zweck = params.getVerwendungszweck();
     Rechnung rechnung = null;
     Sollbuchung sollbuchung = null;
-    Lastschrift ls = null;
+    Lastschrift ueberweisung = null;
     Buchung buchung = null;
 
     // Überweisungen erzeugen
-    ls = generiereUeberweisung(prov, zweck, ueberweisungsbetrag);
+    ueberweisung = generiereUeberweisung(prov, zweck, ueberweisungsbetrag);
     if (ueberweisungsbetrag > 0.005)
     {
-      ueberweisungen.add(ls);
+      ueberweisungen.add(ueberweisung);
       summe += ueberweisungsbetrag;
       monitor.setStatusText(MARKER + "Überweisung erzeugt");
     }
 
     Map<String, Object> map = new AllgemeineMap().getMap(null);
-    map = new GutschriftMap().getMap(ls, map);
-    if (ls.getMitglied() != null)
+    map = new GutschriftMap().getMap(ueberweisung, map);
+    if (ueberweisung.getMitglied() != null)
     {
       boolean ohneLesefelder = !zweck.contains(Einstellungen.LESEFELD_PRE);
-      map = new MitgliedMap().getMap(ls.getMitglied(), map, ohneLesefelder);
+      map = new MitgliedMap().getMap(ueberweisung.getMitglied(), map,
+          ohneLesefelder);
     }
     try
     {
@@ -337,7 +339,7 @@ public class Gutschrift extends SEPASupport
       {
         zweck = zweck.substring(0, 136) + "...";
       }
-      ls.setVerwendungszweck(zweck);
+      ueberweisung.setVerwendungszweck(zweck);
     }
     catch (IOException e)
     {
@@ -367,11 +369,12 @@ public class Gutschrift extends SEPASupport
     {
       rechnung = generiereRechnung(prov, ueberweisungsbetrag, sollbuchung);
       monitor.setStatusText(MARKER + "Rechnung erzeugt");
-      if (params.getRechnungsText().trim().length() > 0)
+      if (params.getRechnungsText() != null
+          && params.getRechnungsText().trim().length() > 0)
       {
         zweck = params.getRechnungsText();
         Map<String, Object> rmap = new AllgemeineMap().getMap(null);
-        rmap = new GutschriftMap().getMap(ls, rmap);
+        rmap = new GutschriftMap().getMap(ueberweisung, rmap);
         boolean ohneLesefelder = !zweck.contains(Einstellungen.LESEFELD_PRE);
         rmap = new MitgliedMap().getMap(sollbuchung.getZahler(), rmap,
             ohneLesefelder);
@@ -419,8 +422,6 @@ public class Gutschrift extends SEPASupport
     // Lastschrift wird als Datenklasse für die Überweisung benutzt
     Lastschrift ls = (Lastschrift) service.createObject(Lastschrift.class,
         null);
-    // Das ist eine Hilfsklasse um die bestehende Klasse für Überweisungen
-    // verwenden zu können
     if (prov.getGutschriftZahler() == null)
     {
       // Dann muss es eine Lastschrift sein bei dem kein Mitglied gesetzt ist
@@ -564,7 +565,8 @@ public class Gutschrift extends SEPASupport
       }
     }
 
-    // Nicht splitten bei nur einer Position
+    // Nicht splitten bei fixen Betrag und Lastschrift (nur einer Position
+    // vorhanden)
     if (!(params.isFixerBetragAbrechnen() || prov instanceof Lastschrift))
     {
       buchung.store();
@@ -673,9 +675,9 @@ public class Gutschrift extends SEPASupport
       // Prüfen ob genügend offener Betrag existiert
       Double posOffenBetrag = posMap.getOrDefault(key, 0d);
       if (posOffenBetrag - ausgleichsbetrag > -0.005
-          && ueberweisungsbetrag < 0.005)
+          && ueberweisungsbetrag <= 0.005)
       {
-        // Ausgleichsbuchung ohne splitten
+        // Ausgleichsbuchung ohne splitten da keine Überweisung vorhanden ist
         generiereBuchung(prov, ausgleichsbetrag, "JVerein",
             "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), sollb);
       }
@@ -754,7 +756,7 @@ public class Gutschrift extends SEPASupport
               rbuch.setSplitId(splitId);
               SplitbuchungsContainer.add(rbuch);
               restbetrag = restbetrag - ausgleich;
-              if (restbetrag < 0.005)
+              if (restbetrag <= 0.005)
               {
                 break;
               }
@@ -766,7 +768,7 @@ public class Gutschrift extends SEPASupport
     }
     else if (prov.getIstSumme() < 0.005)
     {
-      // Es werden keine Einzahlungen erstattet, da nehmen wir autosplit
+      // Es werden keine Einzahlungen erstattet, da nehmen wir den autosplit
       generiereBuchung(prov, ausgleichsbetrag, "JVerein",
           "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), sollb);
     }

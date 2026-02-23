@@ -987,7 +987,7 @@ public class GutschriftControl
         && provider.getGutschriftZahler() == null
         && ((Lastschrift) provider).getKursteilnehmer() == null)
     {
-      meldung = "Es ist weder ein Mitglied noch ein Zahler konfiguriert!";
+      meldung = "Es ist weder ein Mitglied noch ein Kursteilnehmer konfiguriert!";
       if (bugs != null)
       {
         bugs.add(new Bug(provider, meldung, Bug.WARNING));
