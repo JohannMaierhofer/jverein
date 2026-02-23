@@ -117,9 +117,9 @@ public class Ueberweisung
     for (Lastschrift ls : lastschriften)
     {
       ls_properties.setProperty(SepaUtil.insertIndex("dst.bic", counter),
-          StringUtils.trimToEmpty(ls.getBIC()));
+          StringUtils.trimToEmpty(ls.getBic()));
       ls_properties.setProperty(SepaUtil.insertIndex("dst.iban", counter),
-          StringUtils.trimToEmpty(ls.getIBAN()));
+          StringUtils.trimToEmpty(ls.getIban()));
       if (ls.getMitglied() != null)
       {
         ls_properties.setProperty(SepaUtil.insertIndex("dst.name", counter),
@@ -223,8 +223,8 @@ public class Ueberweisung
         }
         HibiscusAddress ad = (HibiscusAddress) service
             .createObject(HibiscusAddress.class, null);
-        ad.setBic(ls.getBIC());
-        ad.setIban(ls.getIBAN());
+        ad.setBic(ls.getBic());
+        ad.setIban(ls.getIban());
         ue.setGegenkonto(ad);
         ue.setEndtoEndId(ls.getMandatID());
         if (ls.getMitglied() != null)

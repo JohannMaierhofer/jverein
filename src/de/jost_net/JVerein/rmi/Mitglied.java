@@ -106,9 +106,6 @@ public interface Mitglied
 
   public Integer getAlter() throws RemoteException;
 
-  @Override
-  public String getGeschlecht() throws RemoteException;
-
   public void setGeschlecht(String geschlecht) throws RemoteException;
 
   public String getTelefonprivat() throws RemoteException;
@@ -123,8 +120,6 @@ public interface Mitglied
   public String getHandy() throws RemoteException;
 
   public void setHandy(String handy) throws RemoteException;
-
-  public String getEmail() throws RemoteException;
 
   public void setEmail(String email) throws RemoteException;
 
@@ -226,9 +221,6 @@ public interface Mitglied
   public void setLeitwegID(String leitwegid) throws RemoteException;
 
   public boolean checkSEPA() throws RemoteException, ApplicationException;
-
-  @Override
-  public String getMandatID() throws RemoteException;
 
   public void setMandatID(String mandatid) throws RemoteException;
 

@@ -13,6 +13,7 @@ import de.jost_net.JVerein.Variable.AllgemeineMap;
 import de.jost_net.JVerein.Variable.GutschriftMap;
 import de.jost_net.JVerein.Variable.MitgliedMap;
 import de.jost_net.JVerein.Variable.RechnungMap;
+import de.jost_net.JVerein.gui.action.BugObjektEditAction;
 import de.jost_net.JVerein.gui.action.DokumentationAction;
 import de.jost_net.JVerein.gui.action.InsertVariableDialogAction;
 import de.jost_net.JVerein.gui.dialogs.GutschriftDialog;
@@ -21,16 +22,11 @@ import de.jost_net.JVerein.gui.input.BuchungsklasseInput;
 import de.jost_net.JVerein.gui.input.FormularInput;
 import de.jost_net.JVerein.gui.input.DisableTextAreaInput;
 import de.jost_net.JVerein.gui.input.SteuerInput;
+import de.jost_net.JVerein.gui.menu.BugListMenu;
 import de.jost_net.JVerein.io.Gutschrift;
 import de.jost_net.JVerein.io.GutschriftParam;
 import de.jost_net.JVerein.gui.input.BuchungsartInput.buchungsarttyp;
-import de.jost_net.JVerein.gui.view.BuchungDetailView;
 import de.jost_net.JVerein.gui.view.DokumentationUtil;
-import de.jost_net.JVerein.gui.view.LastschriftDetailView;
-import de.jost_net.JVerein.gui.view.MitgliedDetailView;
-import de.jost_net.JVerein.gui.view.NichtMitgliedDetailView;
-import de.jost_net.JVerein.gui.view.RechnungDetailView;
-import de.jost_net.JVerein.gui.view.SollbuchungDetailView;
 import de.jost_net.JVerein.keys.ArtBuchungsart;
 import de.jost_net.JVerein.keys.UeberweisungAusgabe;
 import de.jost_net.JVerein.rmi.Buchung;
@@ -40,7 +36,6 @@ import de.jost_net.JVerein.rmi.Formular;
 import de.jost_net.JVerein.rmi.Konto;
 import de.jost_net.JVerein.rmi.Lastschrift;
 import de.jost_net.JVerein.rmi.Mitglied;
-import de.jost_net.JVerein.rmi.Mitgliedstyp;
 import de.jost_net.JVerein.rmi.Rechnung;
 import de.jost_net.JVerein.rmi.Sollbuchung;
 import de.jost_net.JVerein.rmi.SollbuchungPosition;
@@ -557,6 +552,8 @@ public class GutschriftControl
           return;
         }
 
+        updateBuglist();
+
         // Prüfen ob Error oder Warning vorliegen. Bei Error nicht weiter
         // machen.
         List<Bug> bugs = getBugs();
@@ -591,7 +588,6 @@ public class GutschriftControl
             return;
           }
         }
-        storeValues();
         new Gutschrift(this);
         dialog.close();
       }
@@ -843,52 +839,13 @@ public class GutschriftControl
     {
       return bugsList;
     }
-    bugsList = new TablePart(getBugs(), context -> {
-      Bug bug = (Bug) context;
-      Object object = bug.getObject();
-      if (object instanceof Mitglied)
-      {
-        Mitglied m = (Mitglied) object;
-        try
-        {
-          if (m.getMitgliedstyp() == null
-              || m.getMitgliedstyp().getID().equals(Mitgliedstyp.MITGLIED))
-          {
-            GUI.startView(new MitgliedDetailView(), m);
-          }
-          else
-          {
-            GUI.startView(new NichtMitgliedDetailView(), m);
-          }
-        }
-        catch (RemoteException e)
-        {
-          throw new ApplicationException(
-              "Fehler beim Anzeigen eines Mitgliedes", e);
-        }
-      }
-      if (object instanceof Lastschrift)
-      {
-        GUI.startView(LastschriftDetailView.class, object);
-      }
-      if (object instanceof Rechnung)
-      {
-        GUI.startView(RechnungDetailView.class, object);
-      }
-      if (object instanceof Sollbuchung)
-      {
-        GUI.startView(SollbuchungDetailView.class, object);
-      }
-      if (object instanceof Buchung)
-      {
-        GUI.startView(BuchungDetailView.class, object);
-      }
-    });
+    bugsList = new TablePart(getBugs(), new BugObjektEditAction());
     bugsList.addColumn("Typ", "objektName");
     bugsList.addColumn("ID", "objektId");
     bugsList.addColumn("Zahler", "zahlerName");
     bugsList.addColumn("Meldung", "meldung");
     bugsList.addColumn("Klassifikation", "klassifikationText");
+    bugsList.setContextMenu(new BugListMenu());
     bugsList.setRememberColWidths(true);
     bugsList.setRememberOrder(true);
     return bugsList;
@@ -1016,6 +973,21 @@ public class GutschriftControl
         && provider.getGutschriftZahler() == null)
     {
       meldung = "Kein Zahler konfiguriert!";
+      if (bugs != null)
+      {
+        bugs.add(new Bug(provider, meldung, Bug.WARNING));
+      }
+      else
+      {
+        return meldung;
+      }
+    }
+
+    if (provider instanceof Lastschrift
+        && provider.getGutschriftZahler() == null
+        && ((Lastschrift) provider).getKursteilnehmer() == null)
+    {
+      meldung = "Es ist weder ein Mitglied noch ein Zahler konfiguriert!";
       if (bugs != null)
       {
         bugs.add(new Bug(provider, meldung, Bug.WARNING));

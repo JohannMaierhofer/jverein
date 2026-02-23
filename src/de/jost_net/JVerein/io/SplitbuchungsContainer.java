@@ -688,9 +688,11 @@ public class SplitbuchungsContainer
    *          Sollbuchung deren Sollbuchungspositionen abgeglichen werden
    *          sollen.
    * @param splitMap
-   *          Map welche die Beträge der Sollbuchungspositionen enthält.
+   *          Map welche die Beträge der Sollbuchungspositionen enthält. Sie
+   *          wird von der Methode gefüllt.
    * @param splitZweckMap
-   *          Map welche die Zwecke der Sollbuchungspositionen enthält.
+   *          Map welche die Zwecke der Sollbuchungspositionen enthält. Sie wird
+   *          von der Methode gefüllt.
    * @param ignore
    *          Ignoriere Überzahlung und Buchungen ohne Match bei den Posten.
    */

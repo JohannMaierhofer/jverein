@@ -100,12 +100,12 @@ public class GutschriftMap extends AbstractMap
     map.put(GutschriftVar.MANDATID.getName(), ls.getMandatID());
     map.put(GutschriftVar.MANDATDATUM.getName(),
         new JVDateFormatTTMMJJJJ().format(ls.getMandatDatum()));
-    map.put(GutschriftVar.BIC.getName(), ls.getBIC());
+    map.put(GutschriftVar.BIC.getName(), ls.getBic());
     map.put(GutschriftVar.IBAN.getName(),
-        new IBANFormatter().format(ls.getIBAN()));
-    if (ls.getBIC() != null)
+        new IBANFormatter().format(ls.getIban()));
+    if (ls.getBic() != null)
     {
-      Bank bank = Banken.getBankByBIC(ls.getBIC());
+      Bank bank = Banken.getBankByBIC(ls.getBic());
       if (bank != null)
       {
         String name = bank.getBezeichnung();
@@ -120,7 +120,7 @@ public class GutschriftMap extends AbstractMap
       map.put(GutschriftVar.BANKNAME.getName(), null);
     }
     map.put(GutschriftVar.IBANMASKIERT.getName(),
-        VarTools.maskieren(ls.getIBAN()));
+        VarTools.maskieren(ls.getIban()));
     map.put(GutschriftVar.VERWENDUNGSZWECK.getName(), ls.getVerwendungszweck());
     map.put(GutschriftVar.BETRAG.getName(),
         ls.getBetrag() != null

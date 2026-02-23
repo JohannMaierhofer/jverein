@@ -1139,8 +1139,8 @@ public class AbrechnungSEPA extends SEPASupport
         assert false : "Personentyp ist nicht implementiert";
     }
     ls.setBetrag(zahler.getBetrag().doubleValue());
-    ls.setBIC(zahler.getBic());
-    ls.setIBAN(zahler.getIban());
+    ls.setBic(zahler.getBic());
+    ls.setIban(zahler.getIban());
     ls.setMandatDatum(zahler.getMandatdatum());
     ls.setMandatSequence(zahler.getMandatsequence().getTxt());
     ls.setMandatID(zahler.getMandatid());

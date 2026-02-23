@@ -96,12 +96,12 @@ public class LastschriftMap extends AbstractMap
     map.put(LastschriftVar.EMAIL.getName(), ls.getEmail());
     map.put(LastschriftVar.MANDATID.getName(), ls.getMandatID());
     map.put(LastschriftVar.MANDATDATUM.getName(), ls.getMandatDatum());
-    map.put(LastschriftVar.BIC.getName(), ls.getBIC());
+    map.put(LastschriftVar.BIC.getName(), ls.getBic());
     map.put(LastschriftVar.IBAN.getName(),
-        new IBANFormatter().format(ls.getIBAN()));
-    if (ls.getBIC() != null)
+        new IBANFormatter().format(ls.getIban()));
+    if (ls.getBic() != null)
     {
-      Bank bank = Banken.getBankByBIC(ls.getBIC());
+      Bank bank = Banken.getBankByBIC(ls.getBic());
       if (bank != null)
       {
         String name = bank.getBezeichnung();
@@ -116,7 +116,7 @@ public class LastschriftMap extends AbstractMap
       map.put(LastschriftVar.BANKNAME.getName(), null);
     }
     map.put(LastschriftVar.IBANMASKIERT.getName(),
-        VarTools.maskieren(ls.getIBAN()));
+        VarTools.maskieren(ls.getIban()));
     map.put(LastschriftVar.VERWENDUNGSZWECK.getName(),
         ls.getVerwendungszweck());
     map.put(LastschriftVar.BETRAG.getName(),

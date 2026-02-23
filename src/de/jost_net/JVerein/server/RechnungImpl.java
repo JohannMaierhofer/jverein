@@ -624,4 +624,11 @@ public class RechnungImpl extends AbstractJVereinDBObject
   {
     setAttribute("refrechnung", referenz);
   }
+
+  @Override
+  public String getEmail() throws RemoteException
+  {
+    // Wegen Interface IAdresse
+    return null;
+  }
 }

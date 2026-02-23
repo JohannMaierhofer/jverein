@@ -194,6 +194,24 @@ public class RechnungMap extends AbstractMap
     map.put(RechnungVar.EMPFAENGER.getName(),
         Adressaufbereitung.getAdressfeld(re));
 
+    map.put(RechnungVar.KOMMENTAR.getName(), re.getKommentar());
+    map.put(RechnungVar.RECHNUNGSTEXT.getName(), re.getRechnungstext());
+    if (re.getReferenzrechnungID() != null)
+    {
+      map.put(RechnungVar.REFERENZRECHNUNG.getName(),
+          StringTool.lpad(re.getReferenzrechnungID().toString(),
+              (Integer) Einstellungen.getEinstellung(Property.ZAEHLERLAENGE),
+              "0"));
+    }
+    else
+    {
+      map.put(RechnungVar.REFERENZRECHNUNG.getName(), "");
+    }
+    map.put(RechnungVar.ERSTATTUNGSBETRAG.getName(),
+        re.getErstattungsbetrag() != null
+            ? Einstellungen.DECIMALFORMAT.format(re.getErstattungsbetrag())
+            : "");
+
     String zahlungsweg = "";
     switch (re.getZahlungsweg().getKey())
     {
@@ -221,6 +239,12 @@ public class RechnungMap extends AbstractMap
         break;
       }
     }
+    // Bei Gutschrift den Gutschrifttext verwenden
+    if (re.getErstattungsbetrag() != null)
+    {
+      zahlungsweg = (String) Einstellungen
+          .getEinstellung(Property.RECHNUNGTEXTGUTSCHRIFT);
+    }
     try
     {
       zahlungsweg = VelocityTool.eval(new AllgemeineMap().getMap(map),
@@ -231,23 +255,6 @@ public class RechnungMap extends AbstractMap
       e.printStackTrace();
     }
     map.put(RechnungVar.ZAHLUNGSWEGTEXT.getName(), zahlungsweg);
-    map.put(RechnungVar.KOMMENTAR.getName(), re.getKommentar());
-    map.put(RechnungVar.RECHNUNGSTEXT.getName(), re.getRechnungstext());
-    if (re.getReferenzrechnungID() != null)
-    {
-      map.put(RechnungVar.REFERENZRECHNUNG.getName(),
-          StringTool.lpad(re.getReferenzrechnungID().toString(),
-              (Integer) Einstellungen.getEinstellung(Property.ZAEHLERLAENGE),
-              "0"));
-    }
-    else
-    {
-      map.put(RechnungVar.REFERENZRECHNUNG.getName(), "");
-    }
-    map.put(RechnungVar.ERSTATTUNGSBETRAG.getName(),
-        re.getErstattungsbetrag() != null
-            ? Einstellungen.DECIMALFORMAT.format(re.getErstattungsbetrag())
-            : "");
 
     return map;
   }
