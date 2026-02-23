@@ -764,10 +764,9 @@ public class Gutschrift extends SEPASupport
         SplitbuchungsContainer.store();
       }
     }
-    else if (prov.getIstSumme() < 0.005
-        && sollb.getSollbuchungPositionList().size() == 1)
+    else if (prov.getIstSumme() < 0.005)
     {
-      // Ausgleichsbuchung ohne splitten
+      // Es werden keine Einzahlungen erstattet, da nehmen wir autosplit
       generiereBuchung(prov, ausgleichsbetrag, "JVerein",
           "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), sollb);
     }
