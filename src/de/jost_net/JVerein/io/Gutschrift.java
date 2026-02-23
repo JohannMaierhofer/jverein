@@ -120,7 +120,7 @@ public class Gutschrift extends SEPASupport
     }
     if (file == null)
     {
-      throw new ApplicationException("Keine Datei ausgewählt");
+      throw new ApplicationException("Keine Datei ausgewählt!");
     }
 
     BackgroundTask t = new BackgroundTask()
