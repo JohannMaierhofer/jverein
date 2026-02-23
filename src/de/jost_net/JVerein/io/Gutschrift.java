@@ -426,7 +426,7 @@ public class Gutschrift extends SEPASupport
       // Dann muss es eine Lastschrift sein bei dem kein Mitglied gesetzt ist
       Kursteilnehmer k = ((Lastschrift) prov).getKursteilnehmer();
       ls.setKursteilnehmer(Integer.parseInt(k.getID()));
-      ila = ls;
+      ila = (Lastschrift) prov;
     }
     else
     {
