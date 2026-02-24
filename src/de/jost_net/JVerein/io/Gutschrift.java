@@ -645,12 +645,18 @@ public class Gutschrift extends SEPASupport
         double ausgleich = 0;
         for (Sollbuchung sollb : ((Rechnung) provider).getSollbuchungList())
         {
-          ausgleich = sollb.getBetrag() - sollb.getIstSumme();
-          if (ausgleich > LIMIT)
+          // Auch bei ausgleich == 0 ausgleichen wegen der Erstattungsbuchung
+          // die erzeugt werden soll. Ein negativer Ausgleich kann nicht
+          // vorkommen weil die Überzahlung in diesem Fall durch die Checks
+          // unterbunden wird
+          if (sollb.getIstSumme() - sollb.getBetrag() > LIMIT)
           {
-            sollbuchungAusgleich(provider, sollb, ausgleich,
-                ueberweisungsbetrag, buchung, monitor);
+            throw new ApplicationException(
+                "Überzahlung der sollbuchung wird bei Gesamtrechnung nicht unterstützt!");
           }
+          ausgleich = Math.max(sollb.getBetrag() - sollb.getIstSumme(), 0.0);
+          sollbuchungAusgleich(provider, sollb, ausgleich, ueberweisungsbetrag,
+              buchung, monitor);
         }
       }
     }
@@ -780,7 +786,7 @@ public class Gutschrift extends SEPASupport
         SplitbuchungsContainer.store();
       }
     }
-    else if (sollb.getIstSumme() < LIMIT)
+    else if (prov.getIstSumme() < LIMIT)
     {
       // Es werden keine Einzahlungen erstattet, da nehmen wir den autosplit
       generiereBuchung(prov, ausgleichsbetrag, "JVerein",
