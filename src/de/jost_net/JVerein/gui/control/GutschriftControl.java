@@ -1136,10 +1136,12 @@ public class GutschriftControl
     }
 
     if (provider instanceof Rechnung && !params.isFixerBetragAbrechnen()
-        && sollbList != null && sollbList.size() > 1)
+        && sollbList != null && sollbList.size() > 1
+        && provider.getBetrag() - provider.getIstSumme() > LIMIT)
     {
       // Bei Gesamtrechnung erlauben wir nicht, dass eine beteiligte Sollbuchung
-      // überzahlt ist. Das ist im Code nicht implementiert.
+      // überzahlt ist falls es Ausgleichsbuchungen gibt, also nicht die ganze
+      // Rechnung überzahlt ist. Das ist im Code nicht implementiert.
       for (Sollbuchung sollbuchung : sollbList)
       {
         if (sollbuchung.getIstSumme() - sollbuchung.getBetrag() > LIMIT)

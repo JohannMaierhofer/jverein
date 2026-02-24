@@ -219,7 +219,7 @@ public class Gutschrift extends SEPASupport
 
             // Sollbuchung, Buchungen und Lastschriften erzeugen
             Buchung buchung = generiereGutschrift(provider, ueberweisungsbetrag,
-                name, monitor);
+                ausgleichsbetrag, name, monitor);
             if (ausgleichsbetrag > LIMIT)
             {
               sollbuchungenAusgleich(provider, ausgleichsbetrag,
@@ -312,8 +312,8 @@ public class Gutschrift extends SEPASupport
   }
 
   private Buchung generiereGutschrift(IGutschriftProvider prov,
-      double ueberweisungsbetrag, String name, ProgressMonitor monitor)
-      throws RemoteException, ApplicationException
+      double ueberweisungsbetrag, double ausgleichsbetrag, String name,
+      ProgressMonitor monitor) throws RemoteException, ApplicationException
   {
     String zweck = params.getVerwendungszweck();
     Rechnung rechnung = null;
@@ -407,7 +407,14 @@ public class Gutschrift extends SEPASupport
     }
 
     // Buchung erzeugen
-    buchung = generiereBuchung(prov, betrag, name, zweck, sollbuchung);
+    String art = "";
+    // Wenn voll gezahlt ist gibt es keinen Ausgleich, dann ist das hier die
+    // Überweisung
+    if (ausgleichsbetrag <= LIMIT)
+    {
+      art = "Überweisung";
+    }
+    buchung = generiereBuchung(prov, betrag, name, zweck, sollbuchung, art);
     monitor.setStatusText(MARKER + "Buchung erzeugt");
 
     // Buchungsdokument erzeugen
@@ -543,11 +550,11 @@ public class Gutschrift extends SEPASupport
   }
 
   private Buchung generiereBuchung(IGutschriftProvider prov, double betrag,
-      String name, String zweck, Sollbuchung sollbuchung)
+      String name, String zweck, Sollbuchung sollbuchung, String art)
       throws RemoteException, ApplicationException
   {
     // Buchung erzeugen
-    Buchung buchung = getBuchung(betrag, name, zweck, getIBAN(prov), "");
+    Buchung buchung = getBuchung(betrag, name, zweck, getIBAN(prov), art);
     if (params.isFixerBetragAbrechnen() || prov instanceof Lastschrift)
     {
       buchung.setBuchungsartId(params.getBuchungsart() != null
@@ -685,7 +692,8 @@ public class Gutschrift extends SEPASupport
       {
         // Ausgleichsbuchung ohne splitten da keine Überweisung vorhanden ist
         generiereBuchung(prov, ausgleichsbetrag, "JVerein",
-            "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), sollb);
+            "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), sollb,
+            "");
       }
       else
       {
@@ -776,7 +784,7 @@ public class Gutschrift extends SEPASupport
     {
       // Es werden keine Einzahlungen erstattet, da nehmen wir den autosplit
       generiereBuchung(prov, ausgleichsbetrag, "JVerein",
-          "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), sollb);
+          "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), sollb, "");
     }
     else
     {
