@@ -96,6 +96,7 @@ public class BuchungListPart extends BuchungListTablePart
         }, false, Column.ALIGN_RIGHT);
       }
     }
+
     addColumn("Buchungsart", "buchungsart", new BuchungsartFormatter());
     if ((Boolean) Einstellungen
         .getEinstellung(Property.BUCHUNGSKLASSEINBUCHUNG))
@@ -103,8 +104,8 @@ public class BuchungListPart extends BuchungListTablePart
       addColumn("Buchungsklasse", "buchungsklasse",
           new BuchungsklasseFormatter());
     }
-
-    addColumn("Mitglied", Buchung.SOLLBUCHUNG, new SollbuchungFormatter());
+    addColumn("Mitglied - Sollbuchung", Buchung.SOLLBUCHUNG,
+        new SollbuchungFormatter());
     addColumn("Ersatz für Aufwendungen", "verzicht", new JaNeinFormatter());
     setContextMenu(menu);
     setRememberColWidths(true);
