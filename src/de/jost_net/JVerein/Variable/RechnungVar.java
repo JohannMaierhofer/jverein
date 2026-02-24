@@ -82,7 +82,8 @@ public enum RechnungVar
   KOMMENTAR("rechnung_kommentar"),
   RECHNUNGSTEXT("rechnung_rechnungstext"),
   REFERENZRECHNUNG("rechnung_referenz_nummer"),
-  ERSTATTUNGSBETRAG("rechnung_erstattungsbetrag");
+  ERSTATTUNGSBETRAG("rechnung_erstattungsbetrag"),
+  ZAHLUNGSWEG("rechnung_zahlungsweg");
 
   private String name;
 
