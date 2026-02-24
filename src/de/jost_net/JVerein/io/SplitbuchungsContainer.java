@@ -705,46 +705,10 @@ public class SplitbuchungsContainer
     boolean klasseInBuchung = (Boolean) Einstellungen
         .getEinstellung(Property.BUCHUNGSKLASSEINBUCHUNG);
 
-    ArrayList<SollbuchungPosition> spArray = sollb.getSollbuchungPositionList();
+    // Positionen mit gleicher Buchungsart, buchungsklasse und Steuer zusammen
+    // fassen
+    positionenZusammenfassen(sollb, splitMap, splitZweckMap);
 
-    for (SollbuchungPosition sp : spArray)
-    {
-      // Wenn eine Buchungsart fehlt können wir nicht automatisch splitten
-      if (sp.getBuchungsartId() == null)
-      {
-        throw new ApplicationException(
-            "Es haben nicht alle Sollbuchungspositionen eine Buchungsart.");
-      }
-      // Key in der Form BuchungsartId-BuchungsklasseId#SteuerId (Steuer nur
-      // wenn steuerInBuchung gesetzt ist)
-      String key = sp.getBuchungsartId() + "-"
-          + (klasseInBuchung && sp.getBuchungsklasseId() != null
-              ? sp.getBuchungsklasseId()
-              : "")
-          + "#";
-      if (steuerInBuchung)
-      {
-        key += (sp.getSteuer() != null ? sp.getSteuer().getID() : "");
-      }
-
-      Double betrag = splitMap.getOrDefault(key, 0d);
-      if (Math.abs(sp.getBetrag()) < 0.01d)
-      {
-        continue;
-      }
-
-      splitMap.put(key, betrag + sp.getBetrag().doubleValue());
-      String zweck = splitZweckMap.get(key);
-      if (zweck == null)
-      {
-        zweck = sp.getZweck();
-      }
-      else
-      {
-        zweck = zweck + ", " + sp.getZweck();
-      }
-      splitZweckMap.put(key, zweck);
-    }
     // ggf. bereits zugeordnete Buchungen holen und diese vom Soll abziehen
     for (Buchung istBuchung : sollb.getBuchungList())
     {
@@ -791,6 +755,72 @@ public class SplitbuchungsContainer
         }
         splitMap.put(key, sollBetrag - istBuchung.getBetrag());
       }
+    }
+  }
+
+  /**
+   * Die Methode sucht Sollbuchungspositionen und fasst solche mit gleicher
+   * Buchungsart, Buchungsklasse und Steuer zu einer Position zusammen.
+   * Positionen ohne Betrag werden aussortiert!
+   * 
+   * @param sollb
+   *          Sollbuchung deren Sollbuchungspositionen zusammengefasst werden
+   *          sollen.
+   * @param splitMap
+   *          Map welche die Sollbuchungspositionen enthält. Sie wird von der
+   *          Methode gefüllt.
+   * @param splitZweckMap
+   *          Map welche die Zwecke der Sollbuchungspositionen enthält. Sie wird
+   *          von der Methode gefüllt.
+   */
+  public static void positionenZusammenfassen(Sollbuchung sollb,
+      HashMap<String, Double> splitMap, HashMap<String, String> splitZweckMap)
+      throws RemoteException, ApplicationException
+  {
+    boolean steuerInBuchung = (Boolean) Einstellungen
+        .getEinstellung(Property.STEUERINBUCHUNG);
+    boolean klasseInBuchung = (Boolean) Einstellungen
+        .getEinstellung(Property.BUCHUNGSKLASSEINBUCHUNG);
+
+    ArrayList<SollbuchungPosition> spArray = sollb.getSollbuchungPositionList();
+
+    for (SollbuchungPosition sp : spArray)
+    {
+      // Wenn eine Buchungsart fehlt können wir nicht automatisch splitten
+      if (sp.getBuchungsartId() == null)
+      {
+        throw new ApplicationException(
+            "Es haben nicht alle Sollbuchungspositionen eine Buchungsart.");
+      }
+      // Key in der Form BuchungsartId-BuchungsklasseId#SteuerId (Steuer nur
+      // wenn steuerInBuchung gesetzt ist)
+      String key = sp.getBuchungsartId() + "-"
+          + (klasseInBuchung && sp.getBuchungsklasseId() != null
+              ? sp.getBuchungsklasseId()
+              : "")
+          + "#";
+      if (steuerInBuchung)
+      {
+        key += (sp.getSteuer() != null ? sp.getSteuer().getID() : "");
+      }
+
+      Double betrag = splitMap.getOrDefault(key, 0d);
+      if (Math.abs(sp.getBetrag()) < 0.01d)
+      {
+        continue;
+      }
+
+      splitMap.put(key, betrag + sp.getBetrag().doubleValue());
+      String zweck = splitZweckMap.get(key);
+      if (zweck == null)
+      {
+        zweck = sp.getZweck();
+      }
+      else
+      {
+        zweck = zweck + ", " + sp.getZweck();
+      }
+      splitZweckMap.put(key, zweck);
     }
   }
 }

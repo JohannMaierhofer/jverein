@@ -66,6 +66,8 @@ import de.willuhn.util.ApplicationException;
 
 public class GutschriftControl
 {
+  private final Double LIMIT = 0.005;
+
   private final String KEINFEHLER = "Es wurden keine Probleme gefunden.";
 
   private TablePart bugsList;
@@ -768,7 +770,7 @@ public class GutschriftControl
       if ((boolean) getFixerBetragAbrechnenInput().getValue())
       {
         if (getFixerBetragInput().getValue() == null
-            || ((Double) getFixerBetragInput().getValue()) < 0.005d)
+            || ((Double) getFixerBetragInput().getValue()) < LIMIT)
         {
           status.setValue("Bitte positiven Erstattungsbetrag eingeben");
           status.setColor(Color.ERROR);
@@ -1068,7 +1070,7 @@ public class GutschriftControl
     }
 
     // Keine Gutschrift bei Erstattungen
-    if (provider.getBetrag() < -0.005d)
+    if (provider.getBetrag() < -LIMIT)
     {
       meldung = "Der Betrag ist negativ!";
       if (bugs != null)
@@ -1082,7 +1084,7 @@ public class GutschriftControl
     }
 
     // Keine Gutschrift bei negativer Einzahlung
-    if (provider.getIstSumme() < -0.005d)
+    if (provider.getIstSumme() < -LIMIT)
     {
       meldung = "Der Zahlungseingang ist negativ, dadurch kann nichts erstattet werden!";
       if (bugs != null)
@@ -1133,15 +1135,37 @@ public class GutschriftControl
       }
     }
 
+    if (provider instanceof Rechnung && !params.isFixerBetragAbrechnen()
+        && sollbList != null && sollbList.size() > 1)
+    {
+      // Bei Gesamtrechnung erlauben wir nicht, dass eine beteiligte Sollbuchung
+      // überzahlt ist. Das ist im Code nicht implementiert.
+      for (Sollbuchung sollbuchung : sollbList)
+      {
+        if (sollbuchung.getIstSumme() - sollbuchung.getBetrag() > LIMIT)
+        {
+          meldung = "Die Gesamtrechnung enthält eine überzahlte Sollbuchung!";
+          if (bugs != null)
+          {
+            bugs.add(new Bug(sollbuchung, meldung, Bug.WARNING));
+          }
+          else
+          {
+            return meldung;
+          }
+        }
+      }
+    }
+
     if (params.isFixerBetragAbrechnen())
     {
       // Beträge bestimmen
       double tmp = provider.getBetrag() - provider.getIstSumme();
-      double offenbetrag = tmp > 0.005d ? tmp : 0;
+      double offenbetrag = tmp > LIMIT ? tmp : 0;
       tmp = params.getFixerBetrag() - offenbetrag;
-      double ueberweisungsbetrag = tmp > 0.005d ? tmp : 0;
+      double ueberweisungsbetrag = tmp > LIMIT ? tmp : 0;
       tmp = params.getFixerBetrag() - ueberweisungsbetrag;
-      double ausgleichsbetrag = tmp > 0.005d ? tmp : 0;
+      double ausgleichsbetrag = tmp > LIMIT ? tmp : 0;
 
       Sollbuchung sollbFix = null;
       if (provider instanceof Rechnung)
@@ -1175,7 +1199,7 @@ public class GutschriftControl
       if (sollbFix != null
           && !checkVorhandenePosten(sollbFix, params, ausgleichsbetrag))
       {
-        meldung = "Der Betrag der Sollbuchungspositionen mit der gewählten Buchungsart,\n"
+        meldung = "Der Betrag der Sollbuchungspositionen mit der gewählten Buchungsart, \n"
             + "Buchungsklasse und Steuer ist nicht ausreichend!";
         if (bugs != null)
         {
@@ -1287,7 +1311,7 @@ public class GutschriftControl
       }
       summe += pos.getBetrag();
     }
-    if (summe - params.getFixerBetrag() < -0.005d)
+    if (summe - params.getFixerBetrag() < -LIMIT)
     {
       // Es gibt nicht genügend Betrag für die Erstattung
       return false;

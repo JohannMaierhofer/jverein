@@ -69,6 +69,7 @@ import de.willuhn.util.ProgressMonitor;
 
 public class Gutschrift extends SEPASupport
 {
+  private final Double LIMIT = 0.005;
 
   private static final String SKIP = "====> Überspringe ";
 
@@ -106,7 +107,7 @@ public class Gutschrift extends SEPASupport
         || (params.isRechnungErzeugen() && (params.getFormular() == null
             || params.getRechnungsDatum() == null))
         || (params.isFixerBetragAbrechnen() && (params.getFixerBetrag() == null
-            || params.getFixerBetrag() < 0.005d)))
+            || params.getFixerBetrag() < LIMIT)))
     {
       throw new ApplicationException("Eingabeparameter fehlerhaft!");
     }
@@ -117,10 +118,10 @@ public class Gutschrift extends SEPASupport
     if (params.getAusgabe() == UeberweisungAusgabe.SEPA_DATEI)
     {
       file = getFile();
-    }
-    if (file == null)
-    {
-      throw new ApplicationException("Keine Datei ausgewählt!");
+      if (file == null)
+      {
+        throw new ApplicationException("Keine Datei ausgewählt!");
+      }
     }
 
     BackgroundTask t = new BackgroundTask()
@@ -219,7 +220,7 @@ public class Gutschrift extends SEPASupport
             // Sollbuchung, Buchungen und Lastschriften erzeugen
             Buchung buchung = generiereGutschrift(provider, ueberweisungsbetrag,
                 name, monitor);
-            if (ausgleichsbetrag > 0.005)
+            if (ausgleichsbetrag > LIMIT)
             {
               sollbuchungenAusgleich(provider, ausgleichsbetrag,
                   ueberweisungsbetrag, buchung, monitor);
@@ -227,7 +228,7 @@ public class Gutschrift extends SEPASupport
             erstellt++;
           }
 
-          if (summe > 0.005)
+          if (summe > LIMIT)
           {
             // Gegenbuchung erstellen
             getBuchung(summe, "JVerein", "Gegenbuchung", "", "").store();
@@ -273,6 +274,11 @@ public class Gutschrift extends SEPASupport
           }
           DBTransaction.commit();
         }
+        catch (OperationCanceledException oe)
+        {
+          DBTransaction.rollback();
+          throw oe;
+        }
         catch (ApplicationException ae)
         {
           DBTransaction.rollback();
@@ -317,7 +323,7 @@ public class Gutschrift extends SEPASupport
 
     // Überweisungen erzeugen
     ueberweisung = generiereUeberweisung(prov, zweck, ueberweisungsbetrag);
-    if (ueberweisungsbetrag > 0.005)
+    if (ueberweisungsbetrag > LIMIT)
     {
       ueberweisungen.add(ueberweisung);
       summe += ueberweisungsbetrag;
@@ -604,7 +610,6 @@ public class Gutschrift extends SEPASupport
       }
       else if (provider instanceof Rechnung)
       {
-        // C
         if (((Rechnung) provider).getSollbuchungList().size() == 1)
         {
           sollbFix = ((Rechnung) provider).getSollbuchungList().get(0);
@@ -634,7 +639,7 @@ public class Gutschrift extends SEPASupport
         for (Sollbuchung sollb : ((Rechnung) provider).getSollbuchungList())
         {
           ausgleich = sollb.getBetrag() - sollb.getIstSumme();
-          if (ausgleich > 0.005)
+          if (ausgleich > LIMIT)
           {
             sollbuchungAusgleich(provider, sollb, ausgleich,
                 ueberweisungsbetrag, buchung, monitor);
@@ -652,6 +657,7 @@ public class Gutschrift extends SEPASupport
         .getEinstellung(Property.STEUERINBUCHUNG);
     boolean klasseInBuchung = (Boolean) Einstellungen
         .getEinstellung(Property.BUCHUNGSKLASSEINBUCHUNG);
+
     // Fixer Betrag und Sollbuchung
     if (params.isFixerBetragAbrechnen())
     {
@@ -674,8 +680,8 @@ public class Gutschrift extends SEPASupport
 
       // Prüfen ob genügend offener Betrag existiert
       Double posOffenBetrag = posMap.getOrDefault(key, 0d);
-      if (posOffenBetrag - ausgleichsbetrag > -0.005
-          && ueberweisungsbetrag <= 0.005)
+      if (posOffenBetrag - ausgleichsbetrag > -LIMIT
+          && ueberweisungsbetrag <= LIMIT)
       {
         // Ausgleichsbuchung ohne splitten da keine Überweisung vorhanden ist
         generiereBuchung(prov, ausgleichsbetrag, "JVerein",
@@ -699,7 +705,7 @@ public class Gutschrift extends SEPASupport
         Long splitId = Long.valueOf(bu.getID());
 
         // Falls etwas erstattet wird, dann Erstattungsbuchung erzeugen
-        if (ueberweisungsbetrag > 0.005)
+        if (ueberweisungsbetrag > LIMIT)
         {
           Buchung buch = getBuchung(-ueberweisungsbetrag, "JVerein",
               "Erstattung für Gutschrift Nr. " + buchung.getID(), null,
@@ -721,7 +727,7 @@ public class Gutschrift extends SEPASupport
         // Erstattungsbuchung
         double ausgleichen = Math.min(posOffenBetrag, ausgleichsbetrag)
             + ueberweisungsbetrag;
-        if (ausgleichen > 0.005)
+        if (ausgleichen > LIMIT)
         {
           Buchung buch1 = getBuchung(ausgleichen, "JVerein",
               "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), null,
@@ -735,7 +741,7 @@ public class Gutschrift extends SEPASupport
         double restbetrag = ausgleichsbetrag
             - Math.min(posOffenBetrag, ausgleichsbetrag);
 
-        if (restbetrag > 0.005)
+        if (restbetrag > LIMIT)
         {
           while (iterator.hasNext())
           {
@@ -744,7 +750,7 @@ public class Gutschrift extends SEPASupport
             {
               continue;
             }
-            if (entry.getValue() > 0.005)
+            if (entry.getValue() > LIMIT)
             {
               double ausgleich = Math.min(entry.getValue(), restbetrag);
               Buchung rbuch = getBuchung(ausgleich, "JVerein",
@@ -756,7 +762,7 @@ public class Gutschrift extends SEPASupport
               rbuch.setSplitId(splitId);
               SplitbuchungsContainer.add(rbuch);
               restbetrag = restbetrag - ausgleich;
-              if (restbetrag <= 0.005)
+              if (restbetrag <= LIMIT)
               {
                 break;
               }
@@ -766,7 +772,7 @@ public class Gutschrift extends SEPASupport
         SplitbuchungsContainer.store();
       }
     }
-    else if (prov.getIstSumme() < 0.005)
+    else if (sollb.getIstSumme() < LIMIT)
     {
       // Es werden keine Einzahlungen erstattet, da nehmen wir den autosplit
       generiereBuchung(prov, ausgleichsbetrag, "JVerein",
@@ -787,15 +793,21 @@ public class Gutschrift extends SEPASupport
       SplitbuchungsContainer.init(bu);
       Long splitId = Long.valueOf(bu.getID());
 
-      // Sollbuchungsposten ausgleichen
-      for (SollbuchungPosition position : positionen)
+      // Sollbuchungsposten ausgleichen und Positionen mit gleicher Buchungsart,
+      // Buchungsklasse und Steuer zusammen fassen
+      HashMap<String, Double> posMap = new HashMap<>();
+      HashMap<String, String> posZweckMap = new HashMap<>();
+      SplitbuchungsContainer.positionenZusammenfassen(sollb, posMap,
+          posZweckMap);
+      Iterator<Entry<String, Double>> iterator = posMap.entrySet().stream()
+          .sorted(Map.Entry.comparingByValue()).iterator();
+      while (iterator.hasNext())
       {
-        Buchung buch = getBuchung(position.getBetrag(), "JVerein",
+        Entry<String, Double> entry = iterator.next();
+        Buchung buch = getBuchung(entry.getValue(), "JVerein",
             "Buchungsausgleich für Gutschrift Nr. " + buchung.getID(), null,
             "");
-        buch.setBuchungsartId(position.getBuchungsartId());
-        buch.setBuchungsklasseId(position.getBuchungsklasseId());
-        buch.setSteuer(position.getSteuer());
+        initBuchung(buch, entry, null);
         buch.setSollbuchung(sollb);
         buch.setSplitTyp(SplitbuchungTyp.SPLIT);
         buch.setSplitId(splitId);
