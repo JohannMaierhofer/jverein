@@ -311,6 +311,23 @@ public class Gutschrift extends SEPASupport
     Application.getController().start(t);
   }
 
+  /**
+   * Die Methode generiert die Überweisung, Sollbuchung, Buchung, Rechnung und
+   * Buchungsdokument.
+   * 
+   * @param prov
+   *          Das selektierte Objekt (Provider) für das eine Gutschrift erzeugt
+   *          werden soll.
+   * @param ueberweisungsbetrag
+   *          Der Betrag der überwiesen werden soll.
+   * @param ausgleichsbetrag
+   *          Der Betrag der beim Provider mit einer Buchung ausgeglichen werden
+   *          muss, damit dieser dann nicht mehr als Fehlbetrag gelistet wird.
+   * @param name
+   *          Der Name der Person für die die Gutschrift estellt wird.
+   * @param monitor
+   *          Monitor für die Meldungsausgabe.
+   */
   private Buchung generiereGutschrift(IGutschriftProvider prov,
       double ueberweisungsbetrag, double ausgleichsbetrag, String name,
       ProgressMonitor monitor) throws RemoteException, ApplicationException
@@ -427,6 +444,19 @@ public class Gutschrift extends SEPASupport
     return (buchung);
   }
 
+  /**
+   * Die Methode generiert die Überweisung. Es wurde für eine Überweisung keine
+   * neu Klasse eingeführt sondern die Klasse für Lastschrift wieder verwendet.
+   * Lastschrift hält die Daten für die Überweisung.
+   * 
+   * @param prov
+   *          Das selektierte Objekt (Provider) für das eine Gutschrift erzeugt
+   *          werden soll.
+   * @param zweck
+   *          Der Verwendungszweck in der Überweisung.
+   * @param betrag
+   *          Der Betrag der überwiesen werden soll.
+   */
   private Lastschrift generiereUeberweisung(IGutschriftProvider prov,
       String zweck, double betrag) throws RemoteException, ApplicationException
   {
@@ -465,6 +495,24 @@ public class Gutschrift extends SEPASupport
     return ls;
   }
 
+  /**
+   * Die Methode generiert die Sollbuchung. Ist der Provider eine Rechnung,
+   * Sollbuchung oder Lastschrift, wird bei nicht fixem Betrag der negative
+   * Soll-Betrag des Providers als Betrag in die Sollbuchung aufgenommen. Bei
+   * fixem Betrag ist es der negative fixe Betrag.
+   * 
+   * Bei nicht fixem Betrag und Rechnung oder Sollbuchung werden die
+   * Sollbuchungspositionen mit ihrem negativen Betrag in die Sollbuchung für
+   * die Gutschrift übernommen.
+   * 
+   * @param prov
+   *          Das selektierte Objekt (Provider) für das eine Gutschrift erzeugt
+   *          werden soll.
+   * @param zweck
+   *          Der Verwendungszweck in der Überweisung.
+   * @param betrag
+   *          Der Betrag der überwiesen werden soll.
+   */
   private Sollbuchung generiereSollbuchung(IGutschriftProvider prov,
       double betrag, String zweck) throws RemoteException, ApplicationException
   {
@@ -520,6 +568,23 @@ public class Gutschrift extends SEPASupport
     return sollbuchung;
   }
 
+  /**
+   * Die Methode generiert die Rechnung für die Gutschrift. Falls die Gutschrift
+   * für eine bestehende Rechnung ist, oder für eine Sollbuchung, der eine
+   * Rechnung zugeordnet ist, wird die bestehende Rechnung in das Referenz
+   * Attribut der neuen Rechnung eingetragen. Damit kann im Formular für die
+   * Rechnung die bestehende Rechnung (Rechnungsnummer) referenziert werden.
+   * 
+   * @param prov
+   *          Das selektierte Objekt (Provider) für das eine Gutschrift erzeugt
+   *          werden soll.
+   * @param ueberweisungsbetrag
+   *          Der Betrag der bei der Gutschrift überwiesen wird. Dieser wird im
+   *          Attribut Erstattungsbetrag der Rechnung gespeichert. Er kann dann
+   *          im Formular für die Rechnung verwendet werden.
+   * @param sollbuchung
+   *          Sollbuchung für die eine Rechnung erzeugt werden soll.
+   */
   private Rechnung generiereRechnung(IGutschriftProvider prov,
       double ueberweisungsbetrag, Sollbuchung sollbuchung)
       throws RemoteException, ApplicationException
@@ -549,6 +614,29 @@ public class Gutschrift extends SEPASupport
     return rechnung;
   }
 
+  /**
+   * Die Methode generiert eine Buchung für die Gutschrift. Bei einem fixen
+   * Betrag werden Buchungsart, Buchungsklasse und Steuer aus den eingegebenen
+   * Daten des Gutschrift Dialog genommen. Bei Sollbuchungen und Rechnungen
+   * werden die Werte aus der ersten Sollbuchungsposition genommen. Bei
+   * Lastschriften werden diese Werte nicht gesetzt, da keine Information
+   * darüber verfügbar ist.
+   * 
+   * @param prov
+   *          Das selektierte Objekt (Provider) für das eine Gutschrift erzeugt
+   *          werden soll.
+   * @param betrag
+   *          Der Betrag der Buchung.
+   * @param name
+   *          Der Name der Person für die die Gutschrift estellt wird.
+   * @param zweck
+   *          Der Verwendungszweck in der Buchung.
+   * @param sollbuchung
+   *          Sollbuchung an die die Buchung zugeordnet wird.
+   * @param art
+   *          Buchunsart für die Buchung. Bei Erstattungsbuchungen wird hier
+   *          "Überweisung" eingetragen
+   */
   private Buchung generiereBuchung(IGutschriftProvider prov, double betrag,
       String name, String zweck, Sollbuchung sollbuchung, String art)
       throws RemoteException, ApplicationException
@@ -593,6 +681,18 @@ public class Gutschrift extends SEPASupport
     return buchung;
   }
 
+  /**
+   * Die Methode generiert für eine Buchung die Rechnung als Buchungsdokument.
+   * 
+   * @param prov
+   *          Das selektierte Objekt (Provider) für das eine Gutschrift erzeugt
+   *          werden soll. Es wird benutzt um die MitgliedMap für den Zahler zu
+   *          erzeugen.
+   * @param buchung
+   *          Die Buchung bei der die Rechnung hinterlegt werden soll.
+   * @param rechnung
+   *          Die Rechnung die bei der Buchung hinterlegt werden soll.
+   */
   private void generiereBuchungsdokument(IGutschriftProvider prov,
       Buchung buchung, Rechnung rechnung)
       throws RemoteException, ApplicationException
@@ -603,6 +703,27 @@ public class Gutschrift extends SEPASupport
     storeBuchungsDokument(rechnung, buchung, params.getDatum(), rmap);
   }
 
+  /**
+   * Die Methode ruft den Buchungsausgleich für die jeweilige bestehende
+   * Sollbuchung auf. Bei Gesamtrechnungen wird dies für jede Sollbuchung der
+   * Rechnung gemacht. Bei fixem Betrag werden keine Gesamtrechnungen
+   * unterstützt.
+   * 
+   * @param prov
+   *          Das selektierte Objekt (Provider) für das eine Gutschrift erzeugt
+   *          werden soll.
+   * @param ueberweisungsbetrag
+   *          Der Betrag der überwiesen werden soll.
+   * @param ausgleichsbetrag
+   *          Der Betrag der beim Provider mit einer Buchung ausgeglichen werden
+   *          muss, damit dieser dann nicht mehr als Fehlbetrag gelistet wird.
+   * @param buchung
+   *          Die Buchung für die Gutschrift Sollbuchung. Ihre ID wird beim
+   *          Verwendungszweck der Ausgleichsbuchung verwendet um sie zu
+   *          referenzieren.
+   * @param monitor
+   *          Monitor für die Meldungsausgabe.
+   */
   private void sollbuchungenAusgleich(IGutschriftProvider provider,
       double ausgleichsbetrag, double ueberweisungsbetrag, Buchung buchung,
       ProgressMonitor monitor) throws RemoteException, ApplicationException
@@ -662,6 +783,43 @@ public class Gutschrift extends SEPASupport
     }
   }
 
+  /**
+   * Die Methode führt den Buchungsausgleich durch.
+   * 
+   * Bei fixem Betrag: Falls es keine Überweisung gibt und der offene Betrag für
+   * die Positionen mit der entsprechenden Buchungsart, Buchungsklasse und
+   * Steuer noch größer als der Erstattungsbetrag ist, wird einfach der Wert des
+   * Ausgleichsbetrags als Buchung erzeugt. Im anderen Fall wird der
+   * Ausgleichsbetrag auch auf andere Sollbuchungspositionen verteilt und
+   * notfalls auch die Erstattungsbuchung erzeugt, falls etwas überwiesen wurde.
+   * Mit dem Ausgleichsbetrag wird als erstes die Sollbuchungsposition mit der
+   * Buchungsart, Buchungsklasse und Steuer ausgeglichen die dem fixen Betrag
+   * entspricht.
+   * 
+   * Bei nicht fixem Betrag: Falls noch nichts eingezahlt wurde werden alle
+   * Sollbuchungspositionen ausgeglichen.Falls bereits teilweise etwas
+   * eingezahlt wurde (keine Vollzahlung oder Überzahlung, da hier keine
+   * Ausgleichsbuchungen erzeugt werden) werden auch alle Sollbuchungspositionen
+   * ausgeglichen und die bereits eingezahlten Buchungen als erstattet gebucht.
+   * Damit werden alle bisherigen Einzahlungen ausgeglichen.
+   * 
+   * @param prov
+   *          Das selektierte Objekt (Provider) für das eine Gutschrift erzeugt
+   *          werden soll.
+   * @param sollb
+   *          Die bestehende Sollbuchung die ausgeglichen werden soll.
+   * @param ueberweisungsbetrag
+   *          Der Betrag der überwiesen werden soll.
+   * @param ausgleichsbetrag
+   *          Der Betrag der beim Provider mit einer Buchung ausgeglichen werden
+   *          muss, damit dieser dann nicht mehr als Fehlbetrag gelistet wird.
+   * @param buchung
+   *          Die Buchung für die Gutschrift Sollbuchung. Ihre ID wird beim
+   *          Verwendungszweck der Ausgleichsbuchung verwendet um sie zu
+   *          referenzieren.
+   * @param monitor
+   *          Monitor für die Meldungsausgabe.
+   */
   private void sollbuchungAusgleich(IGutschriftProvider prov, Sollbuchung sollb,
       double ausgleichsbetrag, double ueberweisungsbetrag, Buchung buchung,
       ProgressMonitor monitor) throws RemoteException, ApplicationException
