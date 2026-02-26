@@ -52,14 +52,14 @@ public class GutschriftMap extends AbstractMap
       map = inma;
     }
 
-    if (ls.getID() == null)
+    if (ls == null)
     {
       return getDummyMap(map);
     }
 
     Abrechnungslauf abrl = ls.getAbrechnungslauf();
 
-    for (LastschriftVar var : LastschriftVar.values())
+    for (GutschriftVar var : GutschriftVar.values())
     {
       Object value = null;
       switch (var)
