@@ -157,7 +157,7 @@ public class GutschriftMap extends AbstractMap
           }
           break;
         case IBANMASKIERT:
-          value = maskieren(ls.getIban());
+          value = ibanMaskieren(ls.getIban());
           break;
         case VERWENDUNGSZWECK:
           value = ls.getVerwendungszweck();
