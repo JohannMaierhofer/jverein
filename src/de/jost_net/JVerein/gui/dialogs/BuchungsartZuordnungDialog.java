@@ -309,7 +309,7 @@ public class BuchungsartZuordnungDialog extends AbstractDialog<Buchungsart>
     stliste.add(stloeschen);
     DBIterator<Steuer> it = Einstellungen.getDBService()
         .createList(Steuer.class);
-    it.addFilter("aktiv = true");
+    it.addFilter("IFNULL(aktiv, 1) IS TRUE");
     while (it.hasNext())
     {
       stliste.add(it.next());

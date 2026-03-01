@@ -90,8 +90,11 @@ public class BuchungMenu extends ContextMenu
           new MitgliedDetailAction(), "user-friends.png"));
       addItem(new MitgliedOeffnenItem("Sollbuchung anzeigen",
           new SollbuchungEditAction(), "calculator.png"));
-      addItem(new SingleGegenBuchungItem("Neues Anlagenkonto",
-          new AnlagenkontoNeuAction(), "document-new.png"));
+      if ((Boolean) Einstellungen.getEinstellung(Property.ANLAGENKONTEN))
+      {
+        addItem(new SingleGegenBuchungItem("Neues Anlagenkonto",
+            new AnlagenkontoNeuAction(), "document-new.png"));
+      }
     }
     try
     {
