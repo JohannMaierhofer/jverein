@@ -118,8 +118,11 @@ public class BuchungMap extends AbstractMap
           value = bu.getKonto() != null ? bu.getKonto().getNummer() : "";
           break;
         case MITGLIEDSKONTO:
-          value = bu.getSollbuchung() != null ? Adressaufbereitung
-              .getNameVorname(bu.getSollbuchung().getMitglied()) : "";
+          value = bu.getSollbuchung() != null
+              && bu.getSollbuchung().getMitglied() != null
+                  ? Adressaufbereitung
+                      .getNameVorname(bu.getSollbuchung().getMitglied())
+                  : "";
           break;
         case NAME:
           value = bu.getName();
