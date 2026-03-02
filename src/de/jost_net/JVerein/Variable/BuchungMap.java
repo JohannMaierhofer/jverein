@@ -8,6 +8,7 @@ import de.jost_net.JVerein.Einstellungen;
 import de.jost_net.JVerein.Einstellungen.Property;
 import de.jost_net.JVerein.io.Adressbuch.Adressaufbereitung;
 import de.jost_net.JVerein.rmi.Buchung;
+import de.jost_net.JVerein.util.Datum;
 import de.jost_net.JVerein.util.StringTool;
 
 public class BuchungMap extends AbstractMap
@@ -32,7 +33,7 @@ public class BuchungMap extends AbstractMap
       {
         case ABRECHNUNGSLAUF:
           value = bu.getAbrechnungslauf() != null
-              ? bu.getAbrechnungslauf().getDatum()
+              ? Datum.formatDate(bu.getAbrechnungslauf().getDatum())
               : "";
           break;
         case ART:
@@ -42,7 +43,19 @@ public class BuchungMap extends AbstractMap
           value = bu.getAuszugsnummer();
           break;
         case BETRAG:
-          value = bu.getBetrag();
+          value = "";
+          if (bu.getBetrag() != null)
+          {
+            value = Einstellungen.DECIMALFORMAT.format(bu.getBetrag());
+          }
+          break;
+        case BETRAGNETTO:
+          value = "";
+          if ((Boolean) Einstellungen.getEinstellung(Property.OPTIERT)
+              && bu.getNetto() != null)
+          {
+            value = Einstellungen.DECIMALFORMAT.format(bu.getNetto());
+          }
           break;
         case BLATTNUMMER:
           value = bu.getBlattnummer();
@@ -87,7 +100,7 @@ public class BuchungMap extends AbstractMap
           }
           break;
         case DATUM:
-          value = bu.getDatum();
+          value = Datum.formatDate(bu.getDatum());
           break;
         case IBAN:
           value = bu.getIban();
