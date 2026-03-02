@@ -43,11 +43,9 @@ public class BuchungMap extends AbstractMap
           value = bu.getAuszugsnummer();
           break;
         case BETRAG:
-          value = "";
-          if (bu.getBetrag() != null)
-          {
-            value = Einstellungen.DECIMALFORMAT.format(bu.getBetrag());
-          }
+          value = bu.getBetrag() != null
+              ? Einstellungen.DECIMALFORMAT.format(bu.getBetrag())
+              : "";
           break;
         case BETRAGNETTO:
           value = "";
@@ -110,7 +108,7 @@ public class BuchungMap extends AbstractMap
           break;
         case JAHRESABSCHLUSS:
           value = bu.getJahresabschluss() != null
-              ? bu.getJahresabschluss().getBis()
+              ? Datum.formatDate(bu.getJahresabschluss().getBis())
               : "";
           break;
         case KOMMENTAR:
