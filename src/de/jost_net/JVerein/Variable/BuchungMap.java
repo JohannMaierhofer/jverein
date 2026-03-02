@@ -57,7 +57,6 @@ public class BuchungMap extends AbstractMap
               : "";
           break;
         case BUCHUNGSKLASSEBEZEICHNUNG:
-          value = "";
           if ((Boolean) Einstellungen
               .getEinstellung(Property.BUCHUNGSKLASSEINBUCHUNG))
           {
@@ -73,7 +72,6 @@ public class BuchungMap extends AbstractMap
           }
           break;
         case BUCHUNGSKLASSENUMMER:
-          value = "";
           if ((Boolean) Einstellungen
               .getEinstellung(Property.BUCHUNGSKLASSEINBUCHUNG))
           {
